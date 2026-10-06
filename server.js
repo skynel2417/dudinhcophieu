@@ -35,5 +35,4 @@ app.get('/api/securities',async(req,res)=>{try{const d=await getData();const x=a
 app.get('/api/stock/:symbol',async(req,res)=>{const s=req.params.symbol.toUpperCase();try{const d=await getData();const x=await d.marketData.getSecuritiesSummary(s);res.json({source:'SSI FastConnect',symbol:s,market:jsonSafe(x),fundamentals:fundamentals[s]||null,valuation:valuation(s,null)});}catch(e){res.status(503).json({error:e.message,symbol:s,fundamentals:fundamentals[s]||null,valuation:valuation(s,null)});}});
 app.get('/api/valuation/:symbol',async(req,res)=>{const s=req.params.symbol.toUpperCase();const price=Number(req.query.price||0);res.json({symbol:s,price,valuation:valuation(s,price)});});
 app.use(express.static(__dirname));
-app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'index.html')));
-app.listen(PORT,()=>console.log(`VNStock Analytics V1: http://localhost:${PORT}`));
+app.use((req,res)=>res.sendFile(path.join(__dirname,'index.html')));app.listen(PORT,()=>console.log(`VNStock Analytics V1: http://localhost:${PORT}`));
