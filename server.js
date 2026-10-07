@@ -11,9 +11,9 @@ const PORT=process.env.PORT||3000;
 let ssiAuth=null, ssiData=null;
 
 async function getData(){
-  if(!process.env.SSI_CLIENT_ID||!process.env.SSI_API_KEY||!process.env.SSI_API_SECRET) throw new Error('Chưa cấu hình SSI_CLIENT_ID / SSI_API_KEY / SSI_API_SECRET');
+  if(!process.env.SSI_API_KEY||!process.env.SSI_API_SECRET) throw new Error('Chưa cấu hình SSI_API_KEY / SSI_API_SECRET');
   if(!ssiData){
-    const config=new Config({clientId:process.env.SSI_CLIENT_ID,apiKey:process.env.SSI_API_KEY,apiSecret:process.env.SSI_API_SECRET});
+    const config=new Config({apiKey:process.env.SSI_API_KEY,apiSecret:process.env.SSI_API_SECRET});
     ssiAuth=new Auth(config); await ssiAuth.authenticate(); ssiData=new Data(ssiAuth);
   }
   return ssiData;
@@ -66,7 +66,7 @@ function technicalSignal(bars){
   return{ready:true,passed:Object.values(conditions).every(Boolean),date:bars[last].date,close:closes[last],ma8,prevMa8,rsi14:rsi,avgVolume5:avgVolume,avgTurnover5:avgTurnover,conditions};
 }
 
-app.get('/api/status',(req,res)=>res.json({ssiConfigured:!!(process.env.SSI_CLIENT_ID&&process.env.SSI_API_KEY&&process.env.SSI_API_SECRET),fundamentalProvider:'internal-inputs',note:'Market data uses official SSI FastConnect when credentials are configured.'}));
+app.get('/api/status',(req,res)=>res.json({ssiConfigured:!!(process.env.SSI_API_KEY&&process.env.SSI_API_SECRET),fundamentalProvider:'internal-inputs',note:'Market data uses official SSI FastConnect when API key and secret are configured.'}));
 app.get('/api/index/:id',async(req,res)=>{try{const d=await getData();const x=await d.marketData.getIndexSummary(req.params.id.toUpperCase());res.json({source:'SSI FastConnect',data:jsonSafe(x)});}catch(e){res.status(503).json({error:e.message,source:'SSI FastConnect'});}});
 app.get('/api/ohlcv/:symbol',async(req,res)=>{try{const d=await getData();const days=Number(req.query.days||120);const to=new Date();const from=new Date(Date.now()-days*86400000);const fmt=x=>x.toISOString().slice(0,10).replaceAll('-','/')+' 00:00:00';const x=await d.marketData.getOhlc1dayHistorical(req.params.symbol.toUpperCase(),fmt(from),fmt(to),1,1000);res.json({source:'SSI FastConnect',data:jsonSafe(x)});}catch(e){res.status(503).json({error:e.message,source:'SSI FastConnect'});}});
 app.get('/api/screener',async(req,res)=>{
